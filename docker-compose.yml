@@ -1,0 +1,37 @@
+services:
+  my-sba-7:
+    image: openjdk:21
+    container_name: mysbaimage7
+    platform: linux/amd64
+    ports:
+      - "8087:8080"
+      - "8007:8000"
+    expose:
+      - "8007"
+    depends_on:
+      - my-db-7
+    networks:
+      - shared-net
+    environment:
+      MQTT_BROKER_URL: tcp://host.docker.internal:1883
+      VEHICLE_ROUTING_URL: http://host.docker.internal:8000
+      GRAPHHOPPER_URL: http://host.docker.internal:8989
+    # SOLO se sei su Linux (su Mac/Windows non serve):
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./build/libs/DeliveryServiceProject-0.0.1-SNAPSHOT.jar:/app/app.jar
+    working_dir: /app
+    entrypoint: java -Xdebug -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8000 -jar /app/app.jar
+
+  my-db-7:
+    image: mongo:5.0
+    container_name: mongodbimage7
+    ports:
+      - "27023:27017"
+    networks:
+      - shared-net
+
+networks:
+  shared-net:
+    external: true
