@@ -1,7 +1,7 @@
 # DeliveryGo
 
 <div style="text-align: center;">
-  <img src="../app-icon.png" alt="Icona dell'applicazione" width="250"/>
+  <img src="./app-icon.png" alt="Icona dell'applicazione" width="250"/>
 </div>
 
 ## Descrizione del progetto
@@ -28,7 +28,7 @@ Il sistema è composto da un'applicazione mobile per i camionisti, un backend ba
 Il sistema è progettato con un'architettura *a microservizi*, che consente una gestione scalabile e modulare. I vari componenti sono sviluppati come servizi indipendenti che comunicano tramite API RESTful.
 
 <div style="text-align: center;">
-  <img src="../architettura (1).png" alt="Architettura utilizzata" width="1000"/>
+  <img src="./architettura (1).png" alt="Architettura utilizzata" width="1000"/>
 </div>
 
 ### Componenti principali:
