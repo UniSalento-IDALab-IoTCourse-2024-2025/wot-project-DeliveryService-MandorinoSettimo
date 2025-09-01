@@ -90,8 +90,9 @@ Il **DeliveryService** è responsabile della gestione degli ordini e delle rotte
 - **Ottimizzazione delle rotte**: Calcola la rotta migliore per il veicolo e l'ordine, tenendo conto dei vincoli di tempo e capacità.
 - **Assegnazione veicoli**: Assegna i veicoli disponibili agli ordini in base alla loro capacità e alla posizione.
 - **Gestione delle finestre temporali**: Garantisce che gli ordini vengano consegnati nelle finestre temporali specificate.
+- **Ricalcolo in tempo reale**: in caso di anomalie vengono ricalcolati gli ordini e riassegnati ai veicoli disponibili
 
 ### Tecnologie utilizzate:
 - **Spring Boot** per l'implementazione del servizio.
-- **JPA/Hibernate** per la gestione dei dati relativi agli ordini e ai veicoli.
+- **Firebase** per l'invio delle notifiche agli utenti a cui sono state assegnate le tratte
 - **Algoritmi di ottimizzazione**: OR-Tools per il calcolo delle rotte ottimizzate.
