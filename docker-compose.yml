@@ -2,14 +2,15 @@ services:
   my-sba-7:
     image: openjdk:21
     container_name: mysbaimage7
+    restart: "no"
     platform: linux/amd64
     ports:
       - "8087:8080"
       - "8007:8000"
     expose:
       - "8007"
-    depends_on:
-      - my-db-7
+#    depends_on:
+#      - my-db-7
     networks:
       - shared-net
     environment:
@@ -24,13 +25,14 @@ services:
     working_dir: /app
     entrypoint: java -Xdebug -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8000 -jar /app/app.jar
 
-  my-db-7:
-    image: mongo:5.0
-    container_name: mongodbimage7
-    ports:
-      - "27023:27017"
-    networks:
-      - shared-net
+#  my-db-7:
+#    image: mongo:5.0
+#    container_name: mongodbimage7
+#    restart: "no"
+#    ports:
+#      - "27023:27017"
+#    networks:
+#      - shared-net
 
 networks:
   shared-net:
