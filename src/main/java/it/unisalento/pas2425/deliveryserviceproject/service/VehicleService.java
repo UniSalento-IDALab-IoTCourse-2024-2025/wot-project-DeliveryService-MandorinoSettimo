@@ -131,6 +131,9 @@ public class VehicleService {
         if (dto.getCurrentLon() != 0) vehicle.setCurrentLon(dto.getCurrentLon());
         if (dto.getStatus() != null) vehicle.setStatus(dto.getStatus());
         if (dto.getAssignedUserId() != null) vehicle.setAssignedUserId(dto.getAssignedUserId());
+        if (dto.getLastHeadingDeg() != null) vehicle.setLastHeadingDeg(dto.getLastHeadingDeg());
+        if (dto.getLastSpeedKmh() != null) vehicle.setLastSpeedKmh(dto.getLastSpeedKmh());
+        if (dto.getLastPositionAt() != null) vehicle.setLastPositionAt(dto.getLastPositionAt());
 
         vehicle = vehicleRepository.save(vehicle);
 
@@ -235,6 +238,9 @@ public class VehicleService {
         if (dto.getCurrentLat() != null) v.setCurrentLat(dto.getCurrentLat());
         if (dto.getCurrentLon() != null) v.setCurrentLon(dto.getCurrentLon());
         if (dto.getAssignedUserId() != null) v.setAssignedUserId(dto.getAssignedUserId());
+        if (dto.getLastHeadingDeg() != null) v.setLastHeadingDeg(dto.getLastHeadingDeg());
+        if (dto.getLastSpeedKmh() != null) v.setLastSpeedKmh(dto.getLastSpeedKmh());
+        if (dto.getLastPositionAt() != null) v.setLastPositionAt(dto.getLastPositionAt());
         return v;
     }
 

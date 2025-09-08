@@ -7,6 +7,8 @@ public class RecalculateRouteRequestDTO {
     private double currentLon;
     private String segmentId;
 
+    private Integer segmentIndex;
+
     public String getVehicleId() {
         return vehicleId;
     }
@@ -45,5 +47,13 @@ public class RecalculateRouteRequestDTO {
 
     public void setSegmentId(String segmentId) {
         this.segmentId = segmentId;
+    }
+
+    public Integer getSegmentIndex() {
+        return segmentIndex;
+    }
+
+    public void setSegmentIndex(Integer segmentIndex) {
+        this.segmentIndex = segmentIndex;
     }
 }

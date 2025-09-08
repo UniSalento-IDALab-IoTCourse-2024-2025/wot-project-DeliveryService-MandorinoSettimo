@@ -2,6 +2,8 @@ package it.unisalento.pas2425.deliveryserviceproject.dto;
 
 import it.unisalento.pas2425.deliveryserviceproject.domain.VehicleStatus;
 
+import java.time.Instant;
+
 public class VehicleDTO {
     private String id;
     private String plate;
@@ -11,6 +13,9 @@ public class VehicleDTO {
     private Double currentLon;
     private VehicleStatus status;
     private String assignedUserId;
+    private Double lastSpeedKmh;
+    private Double lastHeadingDeg;
+    private Instant lastPositionAt;
 
     public VehicleDTO() {}
 
@@ -76,5 +81,29 @@ public class VehicleDTO {
 
     public void setAssignedUserId(String assignedUserId) {
         this.assignedUserId = assignedUserId;
+    }
+
+    public Double getLastSpeedKmh() {
+        return lastSpeedKmh;
+    }
+
+    public void setLastSpeedKmh(Double lastSpeedKmh) {
+        this.lastSpeedKmh = lastSpeedKmh;
+    }
+
+    public Double getLastHeadingDeg() {
+        return lastHeadingDeg;
+    }
+
+    public void setLastHeadingDeg(Double lastHeadingDeg) {
+        this.lastHeadingDeg = lastHeadingDeg;
+    }
+
+    public Instant getLastPositionAt() {
+        return lastPositionAt;
+    }
+
+    public void setLastPositionAt(Instant lastPositionAt) {
+        this.lastPositionAt = lastPositionAt;
     }
 }

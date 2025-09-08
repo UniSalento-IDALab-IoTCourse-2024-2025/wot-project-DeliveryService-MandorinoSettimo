@@ -14,7 +14,7 @@ public interface OrderRepository extends MongoRepository<Order, String> {
     List<Order> findByVehicleRouteId(String routeId);
     List<Order> findByVehicleRouteIdAndStatus(String vehicleRouteId, OrderStatus status);
     List<Order> findByAssignedVehicleIdAndStatusIn(String assignedVehicleId, Collection<OrderStatus> status);
-
+    List<Order> findByVehicleRouteIdAndStatusIn(String routeId, Collection<OrderStatus> status);
 
 
 }

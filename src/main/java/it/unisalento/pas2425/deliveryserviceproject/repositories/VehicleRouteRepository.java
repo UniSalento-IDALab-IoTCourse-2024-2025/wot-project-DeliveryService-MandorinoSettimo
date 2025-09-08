@@ -15,6 +15,7 @@ public interface VehicleRouteRepository extends MongoRepository<VehicleRoute, St
     Optional<VehicleRoute> findByAssociatedUserIdAndVehicleStatus(String associatedUserId, VehicleStatus status);
     Optional<VehicleRoute> findFirstByVehicleIdAndCompletedFalseOrderByIdDesc(String vehicleId);
 
+
     // This interface can be extended with custom query methods if needed
     // For example, to find routes by vehicle ID or other criteria
 }

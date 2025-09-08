@@ -3,6 +3,8 @@ package it.unisalento.pas2425.deliveryserviceproject.domain;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.time.Instant;
+
 @Document("vehicles")
 public class Vehicle {
     @Id
@@ -14,6 +16,9 @@ public class Vehicle {
     private Double currentLon;
     private VehicleStatus status;
     private String assignedUserId;
+    private Double lastSpeedKmh;
+    private Double lastHeadingDeg;
+    private Instant lastPositionAt;
 
     public Vehicle() {}
 
@@ -79,5 +84,29 @@ public class Vehicle {
 
     public void setAssignedUserId(String assignedUserId) {
         this.assignedUserId = assignedUserId;
+    }
+
+    public Double getLastSpeedKmh() {
+        return lastSpeedKmh;
+    }
+
+    public void setLastSpeedKmh(Double lastSpeedKmh) {
+        this.lastSpeedKmh = lastSpeedKmh;
+    }
+
+    public Double getLastHeadingDeg() {
+        return lastHeadingDeg;
+    }
+
+    public void setLastHeadingDeg(Double lastHeadingDeg) {
+        this.lastHeadingDeg = lastHeadingDeg;
+    }
+
+    public Instant getLastPositionAt() {
+        return lastPositionAt;
+    }
+
+    public void setLastPositionAt(Instant lastPositionAt) {
+        this.lastPositionAt = lastPositionAt;
     }
 }

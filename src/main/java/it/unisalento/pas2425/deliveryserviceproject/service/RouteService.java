@@ -432,58 +432,128 @@ public class RouteService {
     public RecalculateRouteResultDTO recalculateRoute(RecalculateRouteRequestDTO request, String token) {
         RecalculateRouteResultDTO result = new RecalculateRouteResultDTO();
 
-        RealPath currentSegment = realPathRepository.findById(request.getSegmentId()).orElse(null);
-        if (currentSegment == null) {
-            result.setCode(RecalculateRouteResultDTO.SEGMENT_NOT_FOUND);
-            result.setMessage("Segmento non trovato");
-            return result;
-        }
-
-        String toIdx = currentSegment.getToNodeIndex();
-
-// 1) prova nodo “reale” in tabella Node
         Double destLat = null, destLon = null;
-        Node destination = nodeRepository.findById(toIdx).orElse(null);
-        if (destination != null) {
-            destLat = destination.getLat();
-            destLon = destination.getLon();
-        }
+        String toIdx = null;
 
-// 2) fallback: nodo “sintetico” dentro la VehicleRoute
-        if (destLat == null || destLon == null) {
-            VehicleRoute vr = vehicleRouteRepository.findById(currentSegment.getRouteId()).orElse(null);
-            if (vr != null && vr.getRoute() != null) {
-                RouteNodeDTO target = vr.getRoute().stream()
-                        .filter(n -> Objects.equals(toIdx, n.getNodeIndex()))
-                        .findFirst().orElse(null);
-                if (target != null) {
-                    destLat = target.getLat();
-                    destLon = target.getLon();
+        // routeId utilizzabile anche se nel request è nullo ma lo trovo dal RealPath
+        String routeIdForLookup = request.getRouteId();
+
+        // ===== A) Flusso legacy con segmentId =====
+        if (request.getSegmentId() != null && !request.getSegmentId().isBlank()) {
+            RealPath currentSegment = realPathRepository.findById(request.getSegmentId()).orElse(null);
+            if (currentSegment == null) {
+                result.setCode(RecalculateRouteResultDTO.SEGMENT_NOT_FOUND);
+                result.setMessage("Segmento non trovato");
+                return result;
+            }
+
+            toIdx = currentSegment.getToNodeIndex();
+            if (routeIdForLookup == null) routeIdForLookup = currentSegment.getRouteId();
+
+            // 1) prova nodo reale (solo se toIdx non è nullo)
+            if (toIdx != null) {
+                Node destination = nodeRepository.findById(toIdx).orElse(null);
+                if (destination != null) {
+                    destLat = destination.getLat();
+                    destLon = destination.getLon();
                 }
             }
-        }
 
-// 3) (opzionale) ulteriore fallback per RESCUE_<orderId>
-        if ((destLat == null || destLon == null) && toIdx != null && toIdx.startsWith("RESCUE_")) {
-            String orderId = toIdx.substring("RESCUE_".length());
-            Order ord = orderRepository.findById(orderId).orElse(null);
-            if (ord != null) {
-                Node del = nodeRepository.findById(ord.getDeliveryNodeId()).orElse(null);
-                if (del != null) {
-                    destLat = del.getLat();
-                    destLon = del.getLon();
+            // 2) fallback: RouteNode nella VehicleRoute
+            if ((destLat == null || destLon == null) && routeIdForLookup != null) {
+                VehicleRoute vr = vehicleRouteRepository.findById(routeIdForLookup).orElse(null);
+                if (vr != null && vr.getRoute() != null && !vr.getRoute().isEmpty()) {
+                    RouteNodeDTO target = null;
+                    final String toIdxKey = toIdx;
+
+                    if (toIdxKey != null) {
+                        target = vr.getRoute().stream()
+                                .filter(n -> java.util.Objects.equals(toIdxKey, n.getNodeIndex()))
+                                .findFirst()
+                                .orElse(null);
+                    } else if (request.getSegmentIndex() != null) {
+                        int i = request.getSegmentIndex();
+                        if (i >= 0 && i < vr.getRoute().size() - 1) {
+                            target = vr.getRoute().get(i + 1);
+                        }
+                    }
+
+                    if (target != null) {
+                        destLat = target.getLat();
+                        destLon = target.getLon();
+                        if (toIdx == null) toIdx = target.getNodeIndex();
+                    }
                 }
             }
-        }
 
-        if (destLat == null || destLon == null) {
-            result.setCode(RecalculateRouteResultDTO.DESTINATION_NODE_NOT_FOUND);
-            result.setMessage("Nodo di destinazione non trovato (né tra Node né tra i RouteNode della route).");
+            // 3) ulteriore fallback per RESCUE_<orderId>
+            if ((destLat == null || destLon == null) && toIdx != null && toIdx.startsWith("RESCUE_")) {
+                String orderId = toIdx.substring("RESCUE_".length());
+                Order ord = orderRepository.findById(orderId).orElse(null);
+                if (ord != null) {
+                    Node del = nodeRepository.findById(ord.getDeliveryNodeId()).orElse(null);
+                    if (del != null) {
+                        destLat = del.getLat();
+                        destLon = del.getLon();
+                    }
+                }
+            }
+
+            if (destLat == null || destLon == null) {
+                result.setCode(RecalculateRouteResultDTO.DESTINATION_NODE_NOT_FOUND);
+                result.setMessage("Nodo di destinazione non risolvibile (Node/RouteNode).");
+                return result;
+            }
+
+            // ===== B) Nuova via con routeId + segmentIndex (senza RealPath) =====
+        } else if (request.getRouteId() != null && request.getSegmentIndex() != null) {
+            VehicleRoute vr = vehicleRouteRepository.findById(request.getRouteId()).orElse(null);
+            if (vr == null || vr.getRoute() == null || vr.getRoute().isEmpty()) {
+                result.setCode(RecalculateRouteResultDTO.DESTINATION_NODE_NOT_FOUND);
+                result.setMessage("Route non trovata o vuota.");
+                return result;
+            }
+
+            int i = request.getSegmentIndex();
+            if (i < 0 || i >= vr.getRoute().size() - 1) {
+                result.setCode(RecalculateRouteResultDTO.DESTINATION_NODE_NOT_FOUND);
+                result.setMessage("segmentIndex fuori range.");
+                return result;
+            }
+
+            // segmento i: from = route[i], to = route[i+1]
+            RouteNodeDTO target = vr.getRoute().get(i + 1);
+            toIdx = target.getNodeIndex();
+
+            // 1) prova Node solo se toIdx non nullo
+            if (toIdx != null) {
+                Node destination = nodeRepository.findById(toIdx).orElse(null);
+                if (destination != null) {
+                    destLat = destination.getLat();
+                    destLon = destination.getLon();
+                }
+            }
+
+            // 2) fallback: usa coordinate del RouteNode
+            if (destLat == null || destLon == null) {
+                destLat = target.getLat();
+                destLon = target.getLon();
+            }
+
+            if (destLat == null || destLon == null) {
+                result.setCode(RecalculateRouteResultDTO.DESTINATION_NODE_NOT_FOUND);
+                result.setMessage("Nodo destinazione non risolvibile da segmentIndex.");
+                return result;
+            }
+
+        } else {
+            result.setCode(RecalculateRouteResultDTO.SEGMENT_NOT_FOUND);
+            result.setMessage("Fornire segmentId oppure routeId+segmentIndex.");
             return result;
         }
 
-// GH route dal punto corrente al to-node della tratta attiva
-        List<List<Double>> newGeometry;
+        // ===== GraphHopper =====
+        java.util.List<java.util.List<Double>> newGeometry;
         try {
             newGeometry = graphhopperClient.getRoute(
                     request.getCurrentLat(), request.getCurrentLon(), destLat, destLon
@@ -498,10 +568,12 @@ public class RouteService {
         double time = graphhopperClient.getTime();
 
         RealPathDTO updated = new RealPathDTO();
-        updated.setId(currentSegment.getId());
-        updated.setGeometry(newGeometry);
+        updated.setId(request.getSegmentId()); // può essere null: al FE serve la geometry
+        updated.setGeometry(newGeometry);      // [[lon, lat], ...]
         updated.setDistanceM(distance);
         updated.setTimeS(time);
+        updated.setRouteId(request.getRouteId());
+        updated.setVehicleId(request.getVehicleId());
 
         result.setCode(RecalculateRouteResultDTO.OK);
         result.setMessage("Ricalcolo completato");
